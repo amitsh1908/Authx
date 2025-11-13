@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes.js";
 import logoutRoutes from "./routes/logoutRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
+
 dotenv.config();
 
 connectDB();

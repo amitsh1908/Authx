@@ -1,51 +1,35 @@
 import Session from "../models/Session.js";
 
-// all active sessions of a user
+// Get Active Sessions of specific user
 export const getUserActiveSessions = async (req, res) => {
   try {
-    const { email } = req.params;
-    if (!email) return res.status(400).json({ message: "Email required" });
+    const email = req.params.email;
 
-    const sessions = await Session.find({ email, revoked: false }).sort({ loginTime: -1 });
-
-    if (sessions.length === 0)
-      return res.status(404).json({ message: "No active sessions found for this user" });
+    const sessions = await Session.find({ email, revoked: false })
+      .sort({ loginTime: -1 });
 
     res.status(200).json({
-      email,
-      activeSessionCount: sessions.length,
-      sessions: sessions.map((s) => ({
-        id: s._id,
-        ip: s.ip,
-        device: s.device,
-        location: s.location,
-        loginTime: s.loginTime
-      }))
+      count: sessions.length,
+      sessions
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
-// Logout a specific session (admin-initiated)
+// Logout all sessions for specific user
 export const logoutSpecificSession = async (req, res) => {
   try {
-    const { sessionId } = req.body;
-    if (!sessionId) return res.status(400).json({ message: "Session ID required" });
+    const { email } = req.body;
 
-    const session = await Session.findByIdAndUpdate(
-      sessionId,
-      { $set: { revoked: true } },
-      { new: true }
+    const update = await Session.updateMany(
+      { email, revoked: false },
+      { $set: { revoked: true } }
     );
 
-    if (!session)
-      return res.status(404).json({ message: "Session not found" });
-
     res.status(200).json({
-      message: `Session revoked successfully for ${session.email}`,
-      sessionId: session._id,
-      email: session.email
+      message: "All active sessions logged out",
+      count: update.modifiedCount
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });

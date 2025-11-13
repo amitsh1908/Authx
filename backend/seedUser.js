@@ -6,11 +6,41 @@ import User from "./models/User.js";
 dotenv.config();
 
 const users = [
-  { name: "Kanha", email: "kanha@example.com", password: "123456", role: "admin" },
-  { name: "Amit", email: "amit@example.com", password: "123456", role: "user" },
-  { name: "Ravi", email: "ravi@example.com", password: "123456", role: "user" },
-  { name: "Sneha", email: "sneha@example.com", password: "123456", role: "user" },
-  { name: "John", email: "john@example.com", password: "123456", role: "user" }
+  { 
+    name: "Kanha",
+    email: "kanha@example.com",
+    password: "123456",
+    role: "admin",
+    mobile: "+919876543210"
+  },
+  { 
+    name: "Amit",
+    email: "amit@example.com",
+    password: "123456",
+    role: "user",
+    mobile: "+919811111111"
+  },
+  { 
+    name: "Ravi",
+    email: "ravi@example.com",
+    password: "123456",
+    role: "user",
+    mobile: "+919822222222"
+  },
+  { 
+    name: "Sneha",
+    email: "sneha@example.com",
+    password: "123456",
+    role: "user",
+    mobile: "+919833333333"
+  },
+  { 
+    name: "John",
+    email: "john@example.com",
+    password: "123456",
+    role: "user",
+    mobile: "+919844444444"
+  }
 ];
 
 const seedData = async () => {
@@ -33,7 +63,7 @@ const seedData = async () => {
 
     process.exit();
   } catch (err) {
-    console.error(" Seeding failed:", err.message);
+    console.error("Seeding failed:", err.message);
     process.exit(1);
   }
 };
