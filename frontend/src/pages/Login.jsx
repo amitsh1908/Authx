@@ -1,54 +1,69 @@
+// src/pages/Login.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
 
-function Login() {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const nav = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const res = await api.post("/auth/login", { email, password });
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("adminEmail", res.data.user.email);
-      alert("Login successful!");
-      navigate("/dashboard");
+      const { token, user } = res.data;
+
+      // Save login token & admin info
+      localStorage.setItem("token", token);
+      localStorage.setItem("adminEmail", user.email);
+      localStorage.setItem("adminMobile", user.mobile || "");
+      localStorage.removeItem("otpToken"); // clear previous otpToken
+      localStorage.removeItem("otpVerified");
+
+      if (user.role !== "admin") {
+        alert("Access denied — you are not admin.");
+        setLoading(false);
+        return;
+      }
+
+      alert("Login successful");
+      nav("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      alert(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="container">
       <h2>Admin Login</h2>
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleSubmit}>
         <label>Email</label>
         <input
-          type="email"
-          placeholder="Enter email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          type="email"
           required
+          placeholder="admin@example.com"
         />
-
         <label>Password</label>
         <input
-          type="password"
-          placeholder="Enter password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          type="password"
           required
+          placeholder="password"
         />
-
-        <button type="submit">Login</button>
+        <div style={{ marginTop: 10 }}>
+          <button type="submit" disabled={loading}>
+            {loading ? "Logging..." : "Login"}
+          </button>
+        </div>
       </form>
-
-      {error && <p className="error">{error}</p>}
     </div>
   );
 }
-
-export default Login;

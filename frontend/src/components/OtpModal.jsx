@@ -1,7 +1,8 @@
+// src/components/OtpModal.jsx
 import React, { useState } from "react";
 import { api } from "../utils/api";
 
-function OtpModal({ visible, onClose, onVerify }) {
+export default function OtpModal({ visible, onClose, onVerify }) {
   const [step, setStep] = useState(1);
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
@@ -9,49 +10,62 @@ function OtpModal({ visible, onClose, onVerify }) {
 
   if (!visible) return null;
 
-  const adminEmail = localStorage.getItem("adminEmail");
-  const token = localStorage.getItem("token");
+  const loginToken = localStorage.getItem("token");
 
   const sendOtp = async () => {
     if (!mobile) {
-      alert("Please enter mobile number");
+      alert("Please enter mobile with country code");
       return;
     }
+    setLoading(true);
     try {
-      setLoading(true);
-
       const res = await api.post(
         "/admin/send-otp",
         { mobile },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${loginToken}`,
+          },
+        }
       );
 
-      alert("OTP Sent! (Check console)");
-      console.log("OTP:", res.data.otp);
-
+      console.log("OTP (dev):", res.data.otp);
+      alert("OTP sent successfully");
       setStep(2);
     } catch (err) {
-      alert("Failed to send OTP");
+      alert(err.response?.data?.message || "Failed to send OTP");
     } finally {
       setLoading(false);
     }
   };
 
   const verifyOtp = async () => {
+    if (!otp) {
+      alert("Enter OTP");
+      return;
+    }
+
+    setLoading(true);
     try {
-      setLoading(true);
       const res = await api.post(
         "/admin/verify-otp",
         { mobile, otp },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${loginToken}`,
+          },
+        }
       );
-      localStorage.setItem("otpToken", res.data.otpToken);
 
-      alert("OTP Verified!");
-      onVerify();
-      onClose();
+      const otpToken = res.data.otpToken;
+      localStorage.setItem("otpToken", otpToken);
+      localStorage.setItem("otpVerified", "true");
+
+      alert("OTP Verified Successfully");
+      onVerify?.();
+      onClose?.();
     } catch (err) {
-      alert("Invalid OTP");
+      alert(err.response?.data?.message || "Invalid OTP");
     } finally {
       setLoading(false);
     }
@@ -60,14 +74,14 @@ function OtpModal({ visible, onClose, onVerify }) {
   return (
     <div className="modal-overlay">
       <div className="modal">
-        <h3>OTP Verification</h3>
+        <h3>Admin OTP Verification</h3>
 
         {step === 1 && (
           <>
-            <p>Enter Mobile Number</p>
+            <p>Enter mobile number with country code:</p>
             <input
               type="text"
-              placeholder="Enter Mobile Number"
+              placeholder="+91XXXXXXXXXX"
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
             />
@@ -79,23 +93,24 @@ function OtpModal({ visible, onClose, onVerify }) {
 
         {step === 2 && (
           <>
-            <p>Enter OTP</p>
+            <p>Enter OTP sent to your mobile</p>
             <input
               type="text"
               placeholder="Enter OTP"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
             />
+
             <button onClick={verifyOtp} disabled={loading}>
               {loading ? "Verifying..." : "Verify OTP"}
             </button>
           </>
         )}
 
-        <button onClick={onClose} style={{ marginTop: "10px" }}>Close</button>
+        <button onClick={onClose} style={{ marginTop: 10 }}>
+          Close
+        </button>
       </div>
     </div>
   );
 }
-
-export default OtpModal;

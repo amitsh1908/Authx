@@ -1,31 +1,29 @@
+// src/components/SessionTable.jsx
 import React from "react";
 
-function SessionTable({ sessions, logoutDevice }) {
+export default function SessionTable({ sessions = [], onLogout }) {
   return (
     <table className="session-table">
       <thead>
         <tr>
+          <th>Email</th>
           <th>IP</th>
           <th>Device</th>
           <th>Location</th>
-          <th>Browser</th>
-          <th>Date-Time</th>
+          <th>Login Time</th>
           <th>Action</th>
         </tr>
       </thead>
-
       <tbody>
         {sessions.map((s, i) => (
           <tr key={i}>
+            <td>{s.email}</td>
             <td>{s.ip}</td>
             <td>{s.device}</td>
             <td>{s.location}</td>
-            <td>{s.browser}</td>
-            <td>{s.dateTime}</td>
+            <td>{s.loginTime ? new Date(s.loginTime).toLocaleString() : "-"}</td>
             <td>
-              <button onClick={() => logoutDevice(s.email)}>
-                Logout Device
-              </button>
+              <button onClick={() => onLogout(s.email)}>Logout</button>
             </td>
           </tr>
         ))}
@@ -33,5 +31,3 @@ function SessionTable({ sessions, logoutDevice }) {
     </table>
   );
 }
-
-export default SessionTable;

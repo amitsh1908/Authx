@@ -1,94 +1,89 @@
+// src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
 import SessionTable from "../components/SessionTable";
 import { api } from "../utils/api";
 
-function Dashboard() {
+export default function Dashboard() {
   const [email, setEmail] = useState("");
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showEmailInput, setShowEmailInput] = useState(false);
 
   const otpToken = localStorage.getItem("otpToken");
 
   useEffect(() => {
-    function handleViewDevices() {
-      if (!otpToken) {
-        alert("Please verify OTP first!");
+    function handleView() {
+      if (!localStorage.getItem("otpVerified") || !otpToken) {
+        alert("Please verify OTP first");
         return;
       }
-
-      setShowEmailInput(true);
+      if (!email) {
+        alert("Enter the target user email to view devices");
+        return;
+      }
+      fetchSessions();
     }
 
-    window.addEventListener("viewDevices", handleViewDevices);
-
-    return () => window.removeEventListener("viewDevices", handleViewDevices);
-  }, [otpToken]);
+    window.addEventListener("viewDevices", handleView);
+    return () => window.removeEventListener("viewDevices", handleView);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email, otpToken]);
 
   const fetchSessions = async () => {
-    if (!email) {
-      alert("Enter user email first!");
-      return;
-    }
-
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await api.get(`/admin/user-sessions/${email}`, {
+      const res = await api.get(`/admin/user-sessions/${encodeURIComponent(email)}`, {
         headers: { Authorization: `Bearer ${otpToken}` },
       });
-      setSessions(res.data.sessions);
-      if(res.data.sessions.length === 0){
+      setSessions(res.data.sessions || []);
+      if ((res.data.sessions || []).length === 0) {
         alert("No active devices for this user");
       }
     } catch (err) {
-      alert("Failed to load sessions");
+      alert(err.response?.data?.message || "Failed to load sessions");
     } finally {
       setLoading(false);
     }
   };
 
-  const logoutDevice = async (email) => {
+  const handleLogout = async (userEmail) => {
+    if (!otpToken) {
+      alert("OTP token missing");
+      return;
+    }
     try {
-      const res = await api.post(
+      await api.post(
         "/admin/logout-session",
-        { email },
+        { email: userEmail },
         { headers: { Authorization: `Bearer ${otpToken}` } }
       );
-      alert("Device logged out!");
+      alert("Logged out user sessions");
       fetchSessions();
     } catch (err) {
-      alert("Logout failed");
+      alert(err.response?.data?.message || "Logout failed");
     }
   };
 
   return (
     <div>
       <Header />
-
       <div className="container">
         <h2>View User Login Devices</h2>
-
-        {showEmailInput && (
-          <>
-            <input
-              type="email"
-              placeholder="Enter User Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <button onClick={fetchSessions}>View Devices</button>
-          </>
-        )}
+        <p>Enter the user email whose devices you want to see</p>
+        <input
+          type="email"
+          placeholder="user@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <p style={{ marginTop: 10 }}>
+          After OTP verification, click <b>View Login Devices</b> in header.
+        </p>
 
         {loading && <p>Loading...</p>}
 
-        {sessions.length > 0 && (
-          <SessionTable sessions={sessions} logoutDevice={logoutDevice} />
-        )}
+        {sessions.length > 0 && <SessionTable sessions={sessions} onLogout={handleLogout} />}
       </div>
     </div>
   );
 }
-
-export default Dashboard;
