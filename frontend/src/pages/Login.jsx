@@ -1,4 +1,3 @@
-// src/pages/Login.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
@@ -20,7 +19,7 @@ export default function Login() {
       localStorage.setItem("token", token);
       localStorage.setItem("adminEmail", user.email);
       localStorage.setItem("adminMobile", user.mobile || "");
-      localStorage.removeItem("otpToken"); // clear previous otpToken
+      localStorage.removeItem("otpToken");                                           // clear previous otpToken
       localStorage.removeItem("otpVerified");
 
       if (user.role !== "admin") {

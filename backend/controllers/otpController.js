@@ -13,11 +13,15 @@ export const sendOtp = async (req, res) => {
 
     await Otp.create({ mobile, otp });
 
-    console.log("📲 OTP for", mobile, ": ", otp);
+    // In production: Send OTP via SMS service (Twilio, MSG91, etc.)
+    // For development only - log to console
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[DEV] OTP for", mobile, ":", otp);
+    }
 
     return res.status(200).json({
-      message: "OTP sent successfully",
-      otp // dev mode only
+      message: "OTP sent successfully"
+      // SECURITY: Never expose OTP in response
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
@@ -37,13 +41,13 @@ export const verifyOtp = async (req, res) => {
     if (!record)
       return res.status(400).json({ message: "Invalid OTP" });
 
-    // Create OTP ACCESS TOKEN (THIS FIXES EVERYTHING)
+    // Create OTP ACCESS TOKEN 
     const otpToken = jwt.sign(
       {
         mobile,
         otpVerified: true,
-        email: req.user.email,   // ⭐ IMPORTANT
-        role: req.user.role      // ⭐ IMPORTANT
+        email: req.user.email,   
+        role: req.user.role     
       },
       process.env.JWT_SECRET,
       { expiresIn: "10m" }

@@ -35,7 +35,7 @@ export const loginUser = async (req, res) => {
       location = "Not Found";
     }
 
-    // Save session
+    // Save login session 
     const session = new Session({ email, ip, device, location });
     await session.save();
 

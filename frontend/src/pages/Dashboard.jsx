@@ -1,4 +1,3 @@
-// src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
 import SessionTable from "../components/SessionTable";
@@ -26,15 +25,17 @@ export default function Dashboard() {
 
     window.addEventListener("viewDevices", handleView);
     return () => window.removeEventListener("viewDevices", handleView);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email, otpToken]);
 
   const fetchSessions = async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/admin/user-sessions/${encodeURIComponent(email)}`, {
-        headers: { Authorization: `Bearer ${otpToken}` },
-      });
+      const res = await api.get(
+        `/admin/user-sessions/${encodeURIComponent(email)}`,
+        {
+          headers: { Authorization: `Bearer ${otpToken}` },
+        }
+      );
       setSessions(res.data.sessions || []);
       if ((res.data.sessions || []).length === 0) {
         alert("No active devices for this user");
@@ -82,7 +83,9 @@ export default function Dashboard() {
 
         {loading && <p>Loading...</p>}
 
-        {sessions.length > 0 && <SessionTable sessions={sessions} onLogout={handleLogout} />}
+        {sessions.length > 0 && (
+          <SessionTable sessions={sessions} onLogout={handleLogout} />
+        )}
       </div>
     </div>
   );
